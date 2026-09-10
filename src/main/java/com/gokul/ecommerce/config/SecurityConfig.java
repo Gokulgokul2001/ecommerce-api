@@ -1,0 +1,192 @@
+package com.gokul.ecommerce.config;
+
+import com.gokul.ecommerce.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // =========================
+                        // AUTH
+                        // =========================
+
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+
+                        // =========================
+                        // PRODUCTS
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/products",
+                                "/api/products/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/products",
+                                "/api/products/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/products",
+                                "/api/products/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/products",
+                                "/api/products/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // =========================
+                        // CATEGORIES
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/categories",
+                                "/api/categories/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/categories",
+                                "/api/categories/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/categories",
+                                "/api/categories/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/categories",
+                                "/api/categories/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // =========================
+                        // CART
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/cart",
+                                "/api/cart/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/cart",
+                                "/api/cart/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/cart",
+                                "/api/cart/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/cart",
+                                "/api/cart/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+                        // =========================
+                        // ORDER STATUS
+                        // =========================
+
+                                .requestMatchers(
+                                        HttpMethod.PUT,
+                                        "/api/orders/*/status"
+                                ).hasAuthority("ROLE_ADMIN")
+
+
+                        // =========================
+                        // ADMIN
+                        // =========================
+
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // =========================
+                        // EVERYTHING ELSE
+                        // =========================
+
+                        .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
+        return http.build();
+    }
+}
