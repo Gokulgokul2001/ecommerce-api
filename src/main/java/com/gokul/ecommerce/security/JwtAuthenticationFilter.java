@@ -33,22 +33,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorizationHeader =
                 request.getHeader("Authorization");
 
-        // No JWT provided
+        // ---------------------------------------------------------
+        // 1. Check whether Authorization header exists
+        // ---------------------------------------------------------
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith("Bearer ")) {
 
-            System.out.println(
-                    "JWT FILTER: No Bearer token"
-            );
+            System.out.println("JWT FILTER: No Bearer token");
 
             filterChain.doFilter(request, response);
             return;
         }
 
+        // ---------------------------------------------------------
+        // 2. Extract JWT token
+        // ---------------------------------------------------------
         String token =
                 authorizationHeader.substring(7);
 
-        // Validate JWT
+        // ---------------------------------------------------------
+        // 3. Validate JWT
+        // ---------------------------------------------------------
         if (!jwtService.validateToken(token)) {
 
             System.out.println(
@@ -59,21 +64,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Extract user information
+        // ---------------------------------------------------------
+        // 4. Extract email and role from JWT
+        // ---------------------------------------------------------
         String email =
                 jwtService.extractEmail(token);
 
         String role =
                 jwtService.extractRole(token);
 
-        // Temporary debugging
-        System.out.println(
-                "JWT EMAIL: " + email
-        );
-
-        System.out.println(
-                "JWT ROLE: " + role
-        );
+        System.out.println("JWT EMAIL: " + email);
+        System.out.println("JWT ROLE: " + role);
 
         System.out.println(
                 "REQUEST: "
@@ -82,13 +83,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         + request.getRequestURI()
         );
 
-        // Create authority
-        SimpleGrantedAuthority authority =
-                new SimpleGrantedAuthority(
-                        "ROLE_" + role
-                );
+        // ---------------------------------------------------------
+        // 5. Create Spring Security authority
+        // ---------------------------------------------------------
 
-        // Create authenticated user
+        /*
+         * Database role:
+         *
+         * CUSTOMER
+         * ADMIN
+         *
+         * Spring Security authority:
+         *
+         * ROLE_CUSTOMER
+         * ROLE_ADMIN
+         */
+
+        String authorityName;
+
+        if (role.startsWith("ROLE_")) {
+            authorityName = role;
+        } else {
+            authorityName = "ROLE_" + role;
+        }
+
+        SimpleGrantedAuthority authority =
+                new SimpleGrantedAuthority(authorityName);
+
+        // ---------------------------------------------------------
+        // 6. Create authenticated user
+        // ---------------------------------------------------------
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         email,
@@ -96,17 +120,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         List.of(authority)
                 );
 
-        // Temporary debugging
         System.out.println(
                 "AUTHORITIES: "
                         + authentication.getAuthorities()
         );
 
-        // Store authentication in SecurityContext
+        // ---------------------------------------------------------
+        // 7. Store authentication in SecurityContext
+        // ---------------------------------------------------------
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
 
+        // ---------------------------------------------------------
+        // 8. Continue request
+        // ---------------------------------------------------------
         filterChain.doFilter(request, response);
     }
 }
