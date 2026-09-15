@@ -861,8 +861,14 @@ public class OrderServiceTest {
     void updateOrderStatus_shouldMoveConfirmedToProcessing() {
 
         // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setName("Gokul");
+        user.setEmail("gokul@example.com");
+
         Order order = new Order();
         order.setId(1L);
+        order.setUser(user);
         order.setTotalAmount(new BigDecimal("149998.00"));
         order.setStatus(OrderStatus.CONFIRMED);
 
@@ -919,8 +925,14 @@ public class OrderServiceTest {
     void updateOrderStatus_shouldMoveProcessingToShipped() {
 
         // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setName("Gokul");
+        user.setEmail("gokul@example.com");
+
         Order order = new Order();
         order.setId(1L);
+        order.setUser(user);
         order.setTotalAmount(new BigDecimal("149998.00"));
         order.setStatus(OrderStatus.PROCESSING);
 
@@ -976,8 +988,14 @@ public class OrderServiceTest {
     void updateOrderStatus_shouldMoveShippedToDelivered() {
 
         // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setName("Gokul");
+        user.setEmail("gokul@example.com");
+
         Order order = new Order();
         order.setId(1L);
+        order.setUser(user);
         order.setTotalAmount(new BigDecimal("149998.00"));
         order.setStatus(OrderStatus.SHIPPED);
 

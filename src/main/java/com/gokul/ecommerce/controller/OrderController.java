@@ -56,6 +56,18 @@ public class OrderController {
         );
     }
 
+    @GetMapping("/admin")
+    @Operation(
+            summary = "Get all orders",
+            description = "Returns all customer orders for admin"
+    )
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+
+        return ResponseEntity.ok(
+                orderService.getAllOrders()
+        );
+    }
+
     @GetMapping("/{id}")
     @Operation(
             summary = "Get order by ID",

@@ -149,6 +149,8 @@ public class OrderService {
 
         return new OrderResponse(
                 order.getId(),
+                order.getUser().getName(),
+                order.getUser().getEmail(),
                 order.getTotalAmount(),
                 order.getStatus().name(),
                 order.getCreatedAt(),

@@ -175,6 +175,15 @@ public class SecurityConfig {
                         )
 
                         // =========================
+                        // ADMIN ORDERS
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/orders/admin"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        // =========================
                         // ORDER STATUS
                         // =========================
 
