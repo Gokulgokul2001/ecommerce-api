@@ -1,59 +1,42 @@
-# 🛒 E-Commerce Application
+# 🛒 E-Commerce REST API
 
-A production-style **full-stack E-Commerce application** built using **Spring Boot, React, MySQL, Spring Security, JWT, and Docker**.
+A full-stack E-Commerce application backend built using **Java, Spring Boot, Spring Security, JWT, MySQL, JPA/Hibernate, and Docker**.
 
-The application provides authentication, product and category management, shopping cart functionality, order processing, inventory management, role-based authorization, automated testing, Docker support, and cloud deployment.
+The REST API provides authentication, role-based authorization, product and category management, shopping cart functionality, wishlist management, order processing, inventory management, validation, exception handling, automated testing, API documentation, and Docker support.
 
 ---
 
 ## 📌 Project Overview
 
-This project implements a full-stack e-commerce application with:
+The E-Commerce API is the backend service for an online shopping application.
 
-- Spring Boot REST API backend
-- React frontend
-- MySQL database
-- JWT-based authentication
-- Role-based authorization
-- Customer and Admin functionality
-- Product and category management
-- Shopping cart management
-- Order processing
-- Inventory management
-- Automated testing
-- Docker support
-- Cloud deployment
+It provides RESTful APIs for two primary user roles:
 
-The application supports two primary roles:
-
-### 👤 CUSTOMER
+### 👤 Customer
 
 Customers can:
 
 - Register an account
 - Login
 - Browse products
-- Search products
-- Filter products by category
 - View product details
-- Add products to cart
-- Update cart quantities
-- Remove products from cart
+- Manage their shopping cart
+- Manage their wishlist
 - Place orders
-- View order history
+- View their orders
+- View individual order details
 - Cancel eligible orders
 
-### 👨‍💼 ADMIN
+### 👨‍💼 Admin
 
 Administrators can:
 
-- View dashboard statistics
 - Manage products
 - Manage categories
 - View all customer orders
-- View customer details
+- View customer information associated with orders
 - Update order status
-- Manage inventory through product management
+- Manage product inventory
 
 ---
 
@@ -61,85 +44,17 @@ Administrators can:
 
 ## 🔐 Authentication & Authorization
 
-- Customer registration
+- User registration
 - User login
-- JWT authentication
+- JWT-based authentication
+- Spring Security
 - Role-based authorization
-- CUSTOMER and ADMIN roles
+- Customer and Admin roles
+- Password encryption
 - Protected REST endpoints
-- Protected React routes
-- Admin-only frontend routes
-- Password encryption using Spring Security
 
----
-
-## 📦 Product Management
-
-- Create products
-- Get all products
-- Get product by ID
-- Update products
-- Delete products
-- Product name search
-- Pagination
-- Sorting
-- Category association
-- Stock management
-- Product availability validation
-
----
-
-## 🗂️ Category Management
-
-- Create categories
-- Get all categories
-- Get category by ID
-- Update categories
-- Delete categories
-- Associate products with categories
-
----
-
-## 🛒 Shopping Cart
-
-- Get current cart
-- Add products to cart
-- Update product quantity
-- Remove cart items
-- Clear cart
-- Automatic subtotal calculation
-- Automatic total calculation
-- Stock validation
-- Cart count displayed in the frontend navbar
-
----
-
-## 📋 Order Management
-
-- Create orders from cart
-- Get customer orders
-- Get order by ID
-- Cancel eligible orders
-- Admin order management
-- Order status management
-- Customer information displayed to admin
-- Order item price snapshot
-- Automatic stock reduction
-- Automatic cart clearing after successful order
-
----
-
-## 📊 Order Status Workflow
-
-Orders follow a controlled status workflow:
+Supported roles:
 
 ```text
-PENDING
-   ↓
-CONFIRMED
-   ↓
-PROCESSING
-   ↓
-SHIPPED
-   ↓
-DELIVERED
+ROLE_CUSTOMER
+ROLE_ADMIN
