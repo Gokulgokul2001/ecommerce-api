@@ -5,6 +5,7 @@ import com.gokul.ecommerce.dto.CategoryResponse;
 import com.gokul.ecommerce.entity.Category;
 import com.gokul.ecommerce.exception.ResourceNotFoundException;
 import com.gokul.ecommerce.repository.CategoryRepository;
+import com.gokul.ecommerce.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,10 +24,15 @@ class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
     @InjectMocks
     private CategoryService categoryService;
 
+    // =========================================================
     // Test 1: Create Category
+    // =========================================================
     @Test
     void createCategory_shouldCreateCategorySuccessfully() {
 
@@ -39,6 +46,10 @@ class CategoryServiceTest {
         savedCategory.setName("Electronics");
         savedCategory.setDescription("Electronic products");
 
+        // Category does not already exist
+        when(categoryRepository.existsByNameIgnoreCase("Electronics"))
+                .thenReturn(false);
+
         when(categoryRepository.save(any(Category.class)))
                 .thenReturn(savedCategory);
 
@@ -48,18 +59,65 @@ class CategoryServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals("Electronics", response.getName());
+
+        assertEquals(
+                1L,
+                response.getId()
+        );
+
+        assertEquals(
+                "Electronics",
+                response.getName()
+        );
+
         assertEquals(
                 "Electronic products",
                 response.getDescription()
         );
 
         verify(categoryRepository, times(1))
+                .existsByNameIgnoreCase("Electronics");
+
+        verify(categoryRepository, times(1))
                 .save(any(Category.class));
     }
 
-    // Test 2: Get Category By ID - Success
+    // =========================================================
+    // Test 2: Create Category - Duplicate
+    // =========================================================
+    @Test
+    void createCategory_shouldThrowExceptionWhenCategoryAlreadyExists() {
+
+        // Arrange
+        CategoryRequest request = new CategoryRequest();
+        request.setName("Electronics");
+        request.setDescription("Electronic products");
+
+        when(categoryRepository.existsByNameIgnoreCase("Electronics"))
+                .thenReturn(true);
+
+        // Act & Assert
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> categoryService.createCategory(request)
+                );
+
+        assertEquals(
+                "Category already exists with this name.",
+                exception.getMessage()
+        );
+
+        verify(categoryRepository, times(1))
+                .existsByNameIgnoreCase("Electronics");
+
+        verify(categoryRepository, never())
+                .save(any(Category.class));
+    }
+
+    // =========================================================
+    // Test 3: Get Category By ID - Success
+    // =========================================================
     @Test
     void getCategoryById_shouldReturnCategorySuccessfully() {
 
@@ -70,7 +128,7 @@ class CategoryServiceTest {
         category.setDescription("Electronic products");
 
         when(categoryRepository.findById(1L))
-                .thenReturn(java.util.Optional.of(category));
+                .thenReturn(Optional.of(category));
 
         // Act
         CategoryResponse response =
@@ -78,8 +136,17 @@ class CategoryServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals("Electronics", response.getName());
+
+        assertEquals(
+                1L,
+                response.getId()
+        );
+
+        assertEquals(
+                "Electronics",
+                response.getName()
+        );
+
         assertEquals(
                 "Electronic products",
                 response.getDescription()
@@ -89,13 +156,15 @@ class CategoryServiceTest {
                 .findById(1L);
     }
 
-    // Test 3: Get Category By ID - Not Found
+    // =========================================================
+    // Test 4: Get Category By ID - Not Found
+    // =========================================================
     @Test
     void getCategoryById_shouldThrowExceptionWhenNotFound() {
 
         // Arrange
         when(categoryRepository.findById(999L))
-                .thenReturn(java.util.Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception =
@@ -113,7 +182,9 @@ class CategoryServiceTest {
                 .findById(999L);
     }
 
-    // Test 4: Get All Categories
+    // =========================================================
+    // Test 5: Get All Categories
+    // =========================================================
     @Test
     void getAllCategories_shouldReturnAllCategories() {
 
@@ -137,7 +208,11 @@ class CategoryServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(2, response.size());
+
+        assertEquals(
+                2,
+                response.size()
+        );
 
         assertEquals(
                 "Electronics",
@@ -153,7 +228,9 @@ class CategoryServiceTest {
                 .findAll();
     }
 
-    // Test 5: Update Category - Success
+    // =========================================================
+    // Test 6: Update Category - Success
+    // =========================================================
     @Test
     void updateCategory_shouldUpdateCategorySuccessfully() {
 
@@ -175,20 +252,30 @@ class CategoryServiceTest {
         );
 
         when(categoryRepository.findById(1L))
-                .thenReturn(
-                        java.util.Optional.of(existingCategory)
-                );
+                .thenReturn(Optional.of(existingCategory));
+
+        // New name does not already exist
+        when(categoryRepository.existsByNameIgnoreCase(
+                "Updated Electronics"
+        )).thenReturn(false);
 
         when(categoryRepository.save(existingCategory))
                 .thenReturn(updatedCategory);
 
         // Act
         CategoryResponse response =
-                categoryService.updateCategory(1L, request);
+                categoryService.updateCategory(
+                        1L,
+                        request
+                );
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
+
+        assertEquals(
+                1L,
+                response.getId()
+        );
 
         assertEquals(
                 "Updated Electronics",
@@ -204,10 +291,62 @@ class CategoryServiceTest {
                 .findById(1L);
 
         verify(categoryRepository, times(1))
+                .existsByNameIgnoreCase("Updated Electronics");
+
+        verify(categoryRepository, times(1))
                 .save(existingCategory);
     }
 
-    // Test 6: Update Category - Not Found
+    // =========================================================
+    // Test 7: Update Category - Duplicate Name
+    // =========================================================
+    @Test
+    void updateCategory_shouldThrowExceptionWhenCategoryNameAlreadyExists() {
+
+        // Arrange
+        CategoryRequest request = new CategoryRequest();
+        request.setName("Books");
+        request.setDescription("Updated description");
+
+        Category existingCategory = new Category();
+        existingCategory.setId(1L);
+        existingCategory.setName("Electronics");
+        existingCategory.setDescription("Electronic products");
+
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(existingCategory));
+
+        when(categoryRepository.existsByNameIgnoreCase("Books"))
+                .thenReturn(true);
+
+        // Act & Assert
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> categoryService.updateCategory(
+                                1L,
+                                request
+                        )
+                );
+
+        assertEquals(
+                "Category already exists with this name.",
+                exception.getMessage()
+        );
+
+        verify(categoryRepository, times(1))
+                .findById(1L);
+
+        verify(categoryRepository, times(1))
+                .existsByNameIgnoreCase("Books");
+
+        verify(categoryRepository, never())
+                .save(any(Category.class));
+    }
+
+    // =========================================================
+    // Test 8: Update Category - Not Found
+    // =========================================================
     @Test
     void updateCategory_shouldThrowExceptionWhenNotFound() {
 
@@ -219,9 +358,7 @@ class CategoryServiceTest {
         );
 
         when(categoryRepository.findById(999L))
-                .thenReturn(
-                        java.util.Optional.empty()
-                );
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception =
@@ -245,13 +382,19 @@ class CategoryServiceTest {
                 .save(any(Category.class));
     }
 
-    // Test 7: Delete Category - Success
+    // =========================================================
+    // Test 9: Delete Category - Success
+    // =========================================================
     @Test
     void deleteCategory_shouldDeleteCategorySuccessfully() {
 
         // Arrange
         when(categoryRepository.existsById(1L))
                 .thenReturn(true);
+
+        // No products are using this category
+        when(productRepository.existsByCategoryId(1L))
+                .thenReturn(false);
 
         // Act
         categoryService.deleteCategory(1L);
@@ -260,11 +403,52 @@ class CategoryServiceTest {
         verify(categoryRepository, times(1))
                 .existsById(1L);
 
+        verify(productRepository, times(1))
+                .existsByCategoryId(1L);
+
         verify(categoryRepository, times(1))
                 .deleteById(1L);
     }
 
-    // Test 8: Delete Category - Not Found
+    // =========================================================
+    // Test 10: Delete Category - Products Exist
+    // =========================================================
+    @Test
+    void deleteCategory_shouldThrowExceptionWhenProductsAreUsingCategory() {
+
+        // Arrange
+        when(categoryRepository.existsById(1L))
+                .thenReturn(true);
+
+        when(productRepository.existsByCategoryId(1L))
+                .thenReturn(true);
+
+        // Act & Assert
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> categoryService.deleteCategory(1L)
+                );
+
+        assertEquals(
+                "This category cannot be deleted because products are using it. " +
+                        "Please move or remove the products from this category first.",
+                exception.getMessage()
+        );
+
+        verify(categoryRepository, times(1))
+                .existsById(1L);
+
+        verify(productRepository, times(1))
+                .existsByCategoryId(1L);
+
+        verify(categoryRepository, never())
+                .deleteById(1L);
+    }
+
+    // =========================================================
+    // Test 11: Delete Category - Not Found
+    // =========================================================
     @Test
     void deleteCategory_shouldThrowExceptionWhenNotFound() {
 
@@ -286,6 +470,9 @@ class CategoryServiceTest {
 
         verify(categoryRepository, times(1))
                 .existsById(999L);
+
+        verify(productRepository, never())
+                .existsByCategoryId(999L);
 
         verify(categoryRepository, never())
                 .deleteById(999L);

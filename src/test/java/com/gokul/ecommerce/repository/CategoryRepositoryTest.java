@@ -24,7 +24,9 @@ public class CategoryRepositoryTest {
 
         // Arrange
         Category category = new Category();
-        category.setName("Electronics");
+
+        // Use a unique test name because category name is UNIQUE
+        category.setName("Test Electronics 002");
         category.setDescription("Electronic products");
 
         // Act
@@ -40,7 +42,7 @@ public class CategoryRepositoryTest {
         assertNotNull(foundCategory);
 
         assertEquals(
-                "Electronics",
+                "Test Electronics 002",
                 foundCategory.getName()
         );
 

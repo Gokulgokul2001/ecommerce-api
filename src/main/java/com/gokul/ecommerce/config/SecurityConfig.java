@@ -175,6 +175,37 @@ public class SecurityConfig {
                         )
 
                         // =========================
+                        // WISHLIST
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/wishlist",
+                                "/api/wishlist/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/wishlist",
+                                "/api/wishlist/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/wishlist",
+                                "/api/wishlist/**"
+                        ).hasAnyAuthority(
+                                "ROLE_CUSTOMER",
+                                "ROLE_ADMIN"
+                        )
+
+                        // =========================
                         // ADMIN ORDERS
                         // =========================
 
